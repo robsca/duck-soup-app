@@ -24,20 +24,24 @@ window.geometry(f"{int(screen_width*0.9)}x{int(screen_height*0.9)}") # 10% less
 def get_all_notes():
     # create a listbox
     listbox = tk.Listbox(window, width=35, height=30)
-    listbox.config(highlightthickness=0, bd=0, relief='flat')
-    listbox.config(bg=window.cget("bg"))
-    # place the listbox and the scrollbar
+    listbox.config(highlightthickness=0,
+               bd=0,
+                relief='flat',
+                bg=window.cget("bg"),
+                width=35, height=30,font=("Arial", 12),
+                activestyle='none',
+                # get backgroung color of the window
+                selectbackground='#e8e8e8',
+                highlightbackground='#e8e8e8',
+                highlightcolor='#e8e8e8',
+                selectborderwidth=0,
+                selectmode=tk.SINGLE,
+    )
     listbox.grid(row=2, column=0, padx=50, pady=50)
-    # clear the listbox
-    listbox.delete(0, tk.END)
-    # change the style of the listbox
-    listbox.config(font=("Arial", 12))
-    # size of the listbox
-    listbox.config(width=35, height=30)
-    # try to open the notes table
+    # get all notes
     cursor.execute("SELECT * FROM notes")
     notes = cursor.fetchall()
-    # print the notes
+
     for i, note in enumerate(notes):
         title = note[0]
         text = note[1]
@@ -134,8 +138,6 @@ def get_all_notes():
             # place it in the grid
             delete_button.grid(row=0, column=2, padx=10, pady=10)
 
-        listbox.bind('<<ListboxSelect>>', onselect)
-        # get index of double clicked note
         def on_double_click(evt):
             w = evt.widget
             index = int(w.curselection()[0])
@@ -150,6 +152,7 @@ def get_all_notes():
             open_notes(title)
 
         listbox.bind("<Double-Button-1>", on_double_click)
+        listbox.bind('<<ListboxSelect>>', onselect)
 
         def plot(df):
             # create a frame to plot a matplotlib graph
@@ -356,6 +359,7 @@ def new_note():
     read_note_button = tk.Button(new_note_window, text="Read note", command=read_note)
     read_note_button.grid(row=4, column=0, sticky="w")
 
+# Logic
 if __name__ == "__main__":
     # create a button to create a new note
     get_all_notes()

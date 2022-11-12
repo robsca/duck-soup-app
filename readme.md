@@ -5,6 +5,7 @@ Setup
 ```
 virtualenv env_main -p python3
 source env_main/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
