@@ -1,5 +1,5 @@
 PS:
-Eveerytime the databsae is being modified, reset the database to the an empty state, otherwise it would be impossible to test the code.
+Everytime the databsae is being modified, reset the database to the an empty state, otherwise it would be impossible to test the code.
 
 Setup
 ```
