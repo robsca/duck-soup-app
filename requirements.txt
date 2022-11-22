@@ -5,4 +5,6 @@ pyttsx3
 networkx
 matplotlib
 scipy
-
+torch
+transformers
+nltk

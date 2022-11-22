@@ -1,8 +1,8 @@
 from helper_functions import *
 import tkinter as tk
 import sqlite3
-from notes import get_tag_and_words
-
+from manage_database import get_tag_and_words
+from transformers import pipeline
 import datetime as datetime
 
 import networkx as nx
@@ -204,6 +204,68 @@ def new_note():
   
     text_entry = tk.Text(new_note_window, width=width//10, height=50)
     text_entry.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
+    ''''''
+    from model_tgen import model, tokenizer
+
+    def generate_text_from_prompt(event):
+        prompt = text_entry.get("1.0", "end-1c")
+        # get last word of prompt
+        last_word = prompt.split()[-1]
+        len_prompt = len(prompt.split())
+        # get length of prompt
+        if last_word == "/gen200":
+            print("Generating 200 words")
+            # delete last word from prompt
+            prompt = prompt.replace(last_word, "")
+            
+            input_ids = tokenizer.encode(prompt, return_tensors='pt')
+            sample_outputs = model.generate(input_ids, do_sample=True, max_length= len_prompt + 200)
+           
+            # print sample outputs
+            generated_text = tokenizer.decode(sample_outputs[0], skip_special_tokens=True)
+            # delete textarea
+            text_entry.delete(1.0, tk.END)
+            return generated_text
+        elif last_word == "/gen50":
+            print("Generating 50 words")
+            # delete last word from prompt
+            prompt = prompt.replace(last_word, "")
+            # encode context the generation is conditioned on
+            input_ids = tokenizer.encode(prompt, return_tensors='pt')
+            sample_outputs = model.generate(input_ids, do_sample=True, max_length=50)
+            # print sample outputs
+            generated_text = tokenizer.decode(sample_outputs[0], skip_special_tokens=True)
+            # delete textarea
+            text_entry.delete(1.0, tk.END)
+            return generated_text
+        elif last_word == "/gen100":
+            print("Generating 100 words")
+            # delete last word from prompt
+            prompt = prompt.replace(last_word, "")
+            # encode context the generation is conditioned on
+            input_ids = tokenizer.encode(prompt, return_tensors='pt')
+            sample_outputs = model.generate(input_ids, do_sample=True, max_length=100)
+            # print sample outputs
+            generated_text = tokenizer.decode(sample_outputs[0], skip_special_tokens=True)
+            # delete textarea
+            text_entry.delete(1.0, tk.END)
+            return generated_text
+        elif last_word == "/summary":
+            print("Generating summary") 
+            summarizer = pipeline("summarization")
+            summary = summarizer(prompt, max_length=100, min_length=30, do_sample=False)
+            # delete last word from prompt
+            prompt = prompt.replace(last_word, "")
+            text_entry.insert(tk.END, summary[0]['summary_text'])
+        else:
+            print('No generate command found')
+
+    text_entry.bind('<Return>', lambda event: text_entry.insert(tk.END, generate_text_from_prompt(text_entry)))
+
+        # create shortcuts to delete the current line
+    def delete_line(event):
+        text_entry.delete("insert linestart", "insert lineend +1c")
+    text_entry.bind("<Command-d>", delete_line)
 
     tags_entry = tk.Entry(new_note_window)
     # create a label to show the title
@@ -343,7 +405,6 @@ def new_note():
 
     # bind the plot_graph function to the command + p key
     new_note_window.bind("<Command-p>", plot_graph)
-    
     
     # every time_ the text changes, count the words
     text_entry.bind("<KeyRelease>", lambda event: count_words())
