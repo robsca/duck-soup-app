@@ -8,7 +8,11 @@ source env_main/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
+---
+New features 
+text generation in new note -> /gen200 (it will generate 200 words) -> also supported gen50, gen100
+try dictation
+---
 # create a home page for the project
 1. New Note - Done
 2. Edit Note - Done
@@ -34,7 +38,11 @@ pip install -r requirements.txt
     what's the computation thinks is the right tag.
     ------------------------------------------------------------
       
-5. Use pyvis or networkx for network graph visual
+5. Use pyvis or networkx for network graph visual DONE
+
+
 6. Perform summarization and question answering 
+
 7. Create a webscraper with beautifulsoup
 8. Create a database for video and their text to speech editable 
+
