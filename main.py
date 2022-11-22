@@ -361,11 +361,11 @@ def new_note():
 
 # Logic
 if __name__ == "__main__":
-    # create a button to create a new note
+    # Get all notes for the main page
     get_all_notes()
 
+    # Create a button to create a new note
     new_note_button = tk.Button(window, text="+", command=new_note)
-    # no borders and background same as the window
     new_note_button.grid(row=0, column=0, sticky="w")
 
     # run the mainloop
