@@ -11,6 +11,11 @@ pip install -r requirements.txt
 ---
 New features 
 text generation in new note -> /gen200 (it will generate 200 words) -> also supported gen50, gen100
+summarization from text
+question answering 
+add wikipedia scraping -> Done -> ass paragraph choice #
+Final -> use database to train model every time the dataset reaches a milestone.
+
 try dictation
 ---
 # create a home page for the project

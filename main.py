@@ -1,9 +1,12 @@
+from os import truncate
 from helper_functions import *
 import tkinter as tk
 import sqlite3
 from manage_database import get_tag_and_words
 from transformers import pipeline
 import datetime as datetime
+from model_tgen import model, tokenizer
+
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -196,7 +199,6 @@ def new_note():
     new_note_window.title("New note")
     new_note_window.geometry(f"{int(screen_width*0.71)}x{int(screen_height*0.9)}") # 25% less
     width = new_note_window.winfo_screenwidth()
-    height = new_note_window.winfo_screenheight()
     
     value=datetime.datetime.now().strftime("%d-%m-%Y")
     date_entry = tk.Entry(new_note_window, textvariable=value)
@@ -205,13 +207,13 @@ def new_note():
     text_entry = tk.Text(new_note_window, width=width//10, height=50)
     text_entry.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
     ''''''
-    from model_tgen import model, tokenizer
 
     def generate_text_from_prompt(event):
         prompt = text_entry.get("1.0", "end-1c")
         # get last word of prompt
         last_word = prompt.split()[-1]
         len_prompt = len(prompt.split())
+        print(last_word[:6])
         # get length of prompt
         if last_word == "/gen200":
             print("Generating 200 words")
@@ -251,12 +253,30 @@ def new_note():
             text_entry.delete(1.0, tk.END)
             return generated_text
         elif last_word == "/summary":
-            print("Generating summary") 
-            summarizer = pipeline("summarization")
-            summary = summarizer(prompt, max_length=100, min_length=30, do_sample=False)
             # delete last word from prompt
             prompt = prompt.replace(last_word, "")
-            text_entry.insert(tk.END, summary[0]['summary_text'])
+            print("Generating summary") 
+            summarizer = pipeline("summarization")
+
+            summary = summarizer(prompt, max_length=100, min_length=30, truncation=True)
+            summary = summary[0]['summary_text']
+            # add summary to textarea
+            text_entry.insert(tk.END, summary)
+            
+            
+        elif last_word[:6] == "/wiki(":
+            # make a request to wikipedia
+            print("Getting wikipedia summary")
+            # get the word to search
+            word = last_word[6:-1]
+            # delete last word from prompt
+            prompt = prompt.replace(last_word, "")
+            # if is only one word
+            if len(word.split()) != 1:
+                word = word.replace(" ", "_")
+            url = "https://en.wikipedia.org/wiki/" + word
+            text_from_wikipedia = web_scrape_webpage(url)
+            text_entry.insert(tk.END, text_from_wikipedia)
         else:
             print('No generate command found')
 
