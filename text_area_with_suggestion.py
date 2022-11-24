@@ -47,16 +47,57 @@ def get_wiki_summary(prompt,last_word):
     print("Getting wikipedia summary")
     # get the word to search
     word = last_word[6:]
-    # delete last word from prompt
-    prompt = prompt.replace(last_word, "")
-    # if is only one word
-    if len(word.split()) != 1:
-        word = word.replace(" ", "_")
-    url = "https://en.wikipedia.org/wiki/" + word
-    text_from_wikipedia = web_scrape_webpage(url)
-    # replace / with space
-    text_from_wikipedia = text_from_wikipedia.replace("/", "-")
-    text_entry.insert(tk.END, text_from_wikipedia)
+    # if + is in the word
+    if "+" in word:
+        word_ = word.split("+")[0]
+        chapter_ = word.split("+")[1]
+        print(f"Getting chapter {chapter_} of {word_}")
+        url = f"https://en.wikipedia.org/wiki/{word_}"
+        text, chapters = get_wiki_text(url, chapter_)
+        # replace the / with a space
+        text = text.replace("/", " ")
+        prompt = prompt.replace(last_word, text)
+        # delete textarea
+        text_entry.delete(1.0, tk.END)
+        # insert generated text
+        text_entry.insert(tk.END, prompt)
+
+    else:
+        chapter_ = None
+        url = f"https://en.wikipedia.org/wiki/{word}"
+        text, chapters = get_wiki_text(url)
+        # replace the / with a space
+        text = text.replace("/", " ")
+        print(text)
+        print(chapters)
+        # create a new window
+        wiki_window = tk.Toplevel(root)
+        wiki_window.title("Wikipedia")
+        wiki_window.geometry("350x350")
+        # add text to textarea
+        text_entry.insert(tk.END, text)
+        # add chapters to listbox
+        listbox = tk.Listbox(wiki_window, height=10, width=40)
+        listbox.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=5, pady=5)
+        for chapter in chapters:
+            listbox.insert(tk.END, chapter)
+        
+        # if chapter is selected
+        def select_chapter(event):
+            # get selected chapter
+            chapter = listbox.get(listbox.curselection())
+            # get text from wikipedia
+            text, chapters = get_wiki_text(url, chapter)
+            # replace the / with a space
+            text = text.replace("/", " ")
+            # delete textarea
+            text_entry.delete(1.0, tk.END)
+            # insert generated text
+            text_entry.insert(tk.END, text)
+            # destroy window
+            wiki_window.destroy()
+        # bind event to listbox
+        listbox.bind("<<ListboxSelect>>", select_chapter)
 
 def question_answering(prompt):
     def answer_question(prompt):
@@ -121,6 +162,8 @@ def interpreter(event):
         question_answering(prompt)
     else:
         print('No generate command found')
+
+    return None
 
 # if text is highlighted, delete it when pressed command + s
 def summary_highlighted_text(event):
