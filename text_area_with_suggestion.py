@@ -216,7 +216,7 @@ def is_command(event):
     words = text.split()
     word_count = len(words)
     word_count_label = tk.Label(root, text=f"Word count: {word_count}")
-    word_count_label.grid(row=2, column=0, columnspan=3)
+    word_count_label.grid(row=2, column=0)
 
     # analyze the text
     def analyze_text():
@@ -231,7 +231,7 @@ def is_command(event):
         # get the most common words
         most_common_words = word_count.most_common(5)
         most_common_words_label = tk.Label(root, text=f"Most common words: {most_common_words}")
-        most_common_words_label.grid(row=3, column=0, columnspan=4)
+        most_common_words_label.grid(row=0, column=3, columnspan=4)
     
     analyze_text()
 
