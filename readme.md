@@ -9,12 +9,12 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 ---
-New features 
+## New features 
 text generation in new note -> /gen200 (it will generate 200 words) -> also supported gen50, gen100
 summarization from text
 question answering 
-add wikipedia scraping -> Done -> ass paragraph choice #
-Final -> use database to train model every time the dataset reaches a milestone.
+add wikipedia scraping -> Done -> add paragraph choice #
+Final -> use database to train model every time the dataset reaches a certain milestone.
 
 try dictation
 ---
@@ -31,11 +31,12 @@ try dictation
 6. Add a new column in database, now every note has a tag field.
 
 ------------------------
-4. Add Analysis for Note 
-    # word count - dictionary with word,count as key, value.
-    # add tag to database, so I can use a structure like: Source   -  Target,   - Value
-    #                                                     Element1 -  Element2  - Weight_of_connection
-    #                                                     Tag      -  Words in note - How many time appears in Tag    
+4. # Add Analysis for Note 
+    1. word count - dictionary with word,count as key, value.
+    2. add tag to database, so I can use a structure like:
+        Source   -  Target        - Value  
+        Element1 -  Element2      - Weight_of_connection
+        Tag      -  Words in note - How many time appears in Tag    
 
     Tag -> Word(after cleaning useless words) -> number of times
     ------------------------------------------------------------

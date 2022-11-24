@@ -1,4 +1,3 @@
-from os import truncate
 from helper_functions import *
 import tkinter as tk
 import sqlite3
