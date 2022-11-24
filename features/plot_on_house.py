@@ -2,7 +2,6 @@ import tkinter as tk
 from math import sin, cos, pi
 
 # link 1 ->
-source = ['John', 'Mary', 'Peter', 'Susan', 'George', 'Jane', 'Thomas', 'Alice', 'Bob', 'Jill']
 # create a window
 window = tk.Tk()
 window.title("Notebook")
@@ -33,6 +32,30 @@ def connect_line(circles):
             line = canvas.create_line(xc1, yc1, xc2, yc2)
             # add the line to the list
             lines.append(line)
+
+
+def connect_source_target(circles, targets, weights):
+    for i in range(len(circles)):
+        for j in range(len(targets)):
+            # get the coordinates of the circles
+            x1, y1, x2, y2 = canvas.coords(circles[i])
+            xc1 = (x1 + x2) / 2
+            yc1 = (y1 + y2) / 2
+            x1, y1, x2, y2 = canvas.coords(targets[j])
+            xc2 = (x1 + x2) / 2
+            yc2 = (y1 + y2) / 2
+            # create the line
+            line = canvas.create_line(xc1, yc1, xc2, yc2)
+            # add the line to the list
+            lines.append(line)
+
+            # create the text
+            text = canvas.create_text((xc1 + xc2) / 2, (yc1 + yc2) / 2, text=weights[i][j])
+            # add the text to the list
+            texts.append(text)
+
+
+        
                 
 # get width and height of the canvas
 w = 500
@@ -45,6 +68,8 @@ circles = []
 circles_dict = {}
 texts = []
 lines = []
+source = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+
 for i in range(len(source)):
     # create a circle
     x = 200 * cos(2 * pi * i / len(source))
@@ -61,6 +86,7 @@ for i in range(len(source)):
 
 # connect the circles
 connect_line(circles)
+
 
 
 # drag circle   
