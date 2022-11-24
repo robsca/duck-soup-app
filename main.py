@@ -779,6 +779,7 @@ def new_note():
 
     # bind the plot_graph function to the command + p key
     new_note_window.bind("<Command-p>", plot_graph)
+
 # Logic
 if __name__ == "__main__":
     # Get all notes for the main page
