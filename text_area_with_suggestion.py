@@ -1,3 +1,4 @@
+from curses import window
 import tkinter as tk
 from model_tgen import tokenizer, model
 from helper_functions import *
@@ -136,7 +137,6 @@ def question_answering(prompt):
     close_button = tk.Button(qa_window, text="Close", command=close_window)
     close_button.grid(row=2, column=1, sticky="nsew", padx=5, pady=5)
 
-
 # EVENTS
 def interpreter(event):
     prompt = text_entry.get("1.0", "end-1c")
@@ -212,8 +212,32 @@ def is_command(event):
         text_entry.tag_delete("bold")
         text_entry.tag_delete("big")
 
+    text = text_entry.get(index1="1.0", index2="end")
+    words = text.split()
+    word_count = len(words)
+    word_count_label = tk.Label(root, text=f"Word count: {word_count}")
+    word_count_label.grid(row=2, column=0, columnspan=3)
+
+    # analyze the text
+    def analyze_text():
+        from nltk.corpus import stopwords
+        no_words = stopwords.words("english")
+        from collections import Counter
+
+        words = text.split() # split the text into words
+        words = [word.strip(".,!?:;") for word in words] # strip the words from the symbols
+        words = [word for word in words if word not in no_words]  # take out the no words
+        word_count = Counter(words)
+        # get the most common words
+        most_common_words = word_count.most_common(5)
+        most_common_words_label = tk.Label(root, text=f"Most common words: {most_common_words}")
+        most_common_words_label.grid(row=3, column=0, columnspan=4)
+    
+    analyze_text()
+
 # BINDINGS
 text_entry.bind('<KeyRelease>', is_command)
+
 text_entry.bind('<Return>', lambda event: text_entry.insert(tk.END, interpreter(text_entry)))
 text_entry.bind('<Control-s>', summary_highlighted_text)
 root.mainloop()
