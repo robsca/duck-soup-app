@@ -29,13 +29,14 @@ def delete_note(title):
     get_all_notes()
 
 def edit_note(title):
+    # get the note
+    note = database_manager.get_single_note(title)
     edit_window = tk.Tk()
     edit_window.title("Edit Note")
     screen_width = edit_window.winfo_screenwidth()
     screen_height = edit_window.winfo_screenheight()
     edit_window.geometry(f"{int(screen_width*0.9)}x{int(screen_height*0.9)}")
-    # get the note
-    note = database_manager.get_single_note(title)
+    
     # create the title entry
     title_entry = tk.Entry(edit_window, width=50)
     title_entry.grid(row=0, column=0, padx=50, pady=50)
@@ -44,6 +45,10 @@ def edit_note(title):
     text_entry = tk.Text(edit_window, width=50, height=30)
     text_entry.grid(row=1, column=0, padx=50, pady=50)
     text_entry.insert(tk.END, note[1])
+    # create a entry for the date
+    date_entry = tk.Entry(edit_window, width=50)
+    date_entry.grid(row=2, column=0, padx=50, pady=50)
+    date_entry.insert(0, note[2])
     # create the tags entry
     tags_entry = tk.Entry(edit_window, width=50)
     tags_entry.grid(row=2, column=0, padx=50, pady=50)
@@ -285,9 +290,9 @@ def edit_note(title):
         new_title = title_entry.get()
         new_text = text_entry.get("1.0", tk.END)
         new_tags = tags_entry.get()
+        new_date = date_entry.get()
         # update the note
-        cursor.execute("UPDATE notes SET title = ?, text = ?, tags = ? WHERE title = ?", (new_title, new_text, new_tags, title))
-        connection.commit()
+        database_manager.update_single_note(new_title, new_text, new_date, new_tags)
         edit_window.destroy()
         get_all_notes()
 
