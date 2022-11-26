@@ -1,8 +1,10 @@
 from helper_functions import *
-from manage_database import get_tag_and_words
+from manage_database import get_tag_and_words, database
 
 import tkinter as tk
-import sqlite3
+# import messagebox
+from tkinter import messagebox
+
 from transformers import pipeline
 summarizer = pipeline("summarization")
 
@@ -13,8 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # to plot in tkinter
 
 # create a connection to the database
-connection = sqlite3.connect("notes.db")
-cursor = connection.cursor()
+database_manager = database('notes.db')
 
 # create a tkinter window
 window = tk.Tk()
@@ -24,8 +25,7 @@ screen_height = window.winfo_screenheight()
 window.geometry(f"{int(screen_width*0.9)}x{int(screen_height*0.9)}") # 10% less
 
 def delete_note(title):
-    cursor.execute("DELETE FROM notes WHERE title = ?", (title,))
-    connection.commit()
+    database_manager.delete_single_note(title)
     get_all_notes()
 
 def edit_note(title):
@@ -35,8 +35,7 @@ def edit_note(title):
     screen_height = edit_window.winfo_screenheight()
     edit_window.geometry(f"{int(screen_width*0.9)}x{int(screen_height*0.9)}")
     # get the note
-    cursor.execute("SELECT * FROM notes WHERE title = ?", (title,))
-    note = cursor.fetchone()
+    note = database_manager.get_single_note(title)
     # create the title entry
     title_entry = tk.Entry(edit_window, width=50)
     title_entry.grid(row=0, column=0, padx=50, pady=50)
@@ -293,36 +292,37 @@ def edit_note(title):
         get_all_notes()
 
 def open_notes(title):
-    print(title)
-
+    # get the note from the database
+    note = database_manager.get_single_note(title)
+    
     # create a new window
     note_window = tk.Tk()
     note_window.title("Note")
     screen_width = note_window.winfo_screenwidth()
     screen_height = note_window.winfo_screenheight()
     note_window.geometry(f"{int(screen_width*0.9)}x{int(screen_height*0.9)}")
-    # get the note
-    cursor.execute("SELECT * FROM notes WHERE title = ?", (title,))
-    note = cursor.fetchone()
-    # print
-    print("Title: ", note[0])
-    # create the title label
+    
+    # title label
     title_label = tk.Label(note_window, text=note[0], font=("Arial", 20))
-    title_label.grid(row=0, column=0, padx=50, pady=50)
-    # create the text label
+    # text label
     text_label = tk.Label(note_window, text=note[1], font=("Arial", 12))
-    # auto wrap the text
     text_label.config(wraplength=screen_width*0.9)
-    text_label.grid(row=1, column=0, padx=50, pady=50)
-    # create the tags label
+    # date label
+    date_label = tk.Label(note_window, text=note[2], font=("Arial", 12))
+    # tags label
     tags_label = tk.Label(note_window, text=note[3], font=("Arial", 12))
-    tags_label.grid(row=2, column=0, padx=50, pady=50)
-    # create the delete button
+    # buttons
     delete_button = tk.Button(note_window, text="Delete", command=lambda: delete_note(title))
-    delete_button.grid(row=3, column=0, padx=50, pady=50)
-    # create the edit button
     edit_button = tk.Button(note_window, text="Edit", command=lambda: edit_note(title))
-    edit_button.grid(row=4, column=0, padx=50, pady=50)
+    
+    # GRID
+    title_label.grid(row=1, column=0, padx=50, pady=50)
+    date_label.grid(row=1, column=1, padx=50, pady=50)
+    tags_label.grid(row=1, column=2, padx=50, pady=50)
+
+    delete_button.grid(row=0, column=2, padx=50, pady=50)
+    edit_button.grid(row=0, column=1, padx=50, pady=50)
+    text_label.grid(row=2, column=0, columnspan=3, padx=50, pady=50)
 
 # get all notes and print them
 def get_all_notes():
@@ -343,8 +343,7 @@ def get_all_notes():
     )
     listbox.grid(row=2, column=0, padx=50, pady=50)
     # get all notes
-    cursor.execute("SELECT * FROM notes")
-    notes = cursor.fetchall()
+    notes = database_manager.get_all_notes()
 
     for _, note in enumerate(notes):
         title = note[0]
@@ -435,23 +434,17 @@ def new_note():
     value=datetime.datetime.now().strftime("%d-%m-%Y")
     date_entry = tk.Entry(new_note_window)
     date_entry.insert(0, value)
-    # set color of the entry as color of main no border color and no border width
     date_entry.config(bg=window.cget("bg"), highlightbackground=window.cget("bg"), highlightthickness=0, borderwidth=0)
-    # title entry transparent
+    # title entry
     title_entry = tk.Entry(new_note_window)
-    # color of the widget is get color of the window and no border
     title_entry.config(bg=window.cget("bg"), highlightbackground=window.cget("bg"), highlightthickness=0, borderwidth=0)
-    # add a placeholder
     title_entry.insert(0, "Title")
     # text entry
     text_entry = tk.Text(new_note_window, width=width//10, height=50)
-    # set a padding for the text entry
     text_entry.config(wrap="word", padx=10, pady=10)
     # tags entry
     tags_entry = tk.Entry(new_note_window)
-    # add some padding to the tags entry
     tags_entry.config(bg=window.cget("bg"), highlightbackground=window.cget("bg"), highlightthickness=0, borderwidth=0)
-    # add a placeholder
     tags_entry.insert(0, "Tags")
     # create a submit button
     create_note_button = tk.Button(new_note_window, text="Create note")
@@ -685,7 +678,7 @@ def new_note():
             # get the most common words
             most_common_words = word_count.most_common(5)
             most_common_words_label = tk.Label(new_note_window, text=f"Most common words: {most_common_words}")
-            most_common_words_label.grid(row=0, column=3, columnspan=4)
+            most_common_words_label.grid(row=1, column=5, columnspan=2)
         
         analyze_text()
 
@@ -693,24 +686,6 @@ def new_note():
         text_entry.delete("insert linestart", "insert lineend +1c")
 
     # DATABASE FUNCTIONS
-    def save_note_and_plot(destroy=True):
-        # get the title, text and date
-        title = title_entry.get()
-        text = text_entry.get(index1="1.0", index2="end")
-        date = date_entry.get()
-        tags = tags_entry.get()
-
-        # title need to be unique check it first
-        cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
-        note = cursor.fetchone()
-        if note:
-            print("Note already exists")
-        else:
-            # create a new note
-            cursor.execute("INSERT INTO notes VALUES (?, ?, ?, ?)", (title, text, date, tags))
-            # commit the changes
-            connection.commit()
-
     def save_note(destroy=True):
         # get the title, text and date
         title = title_entry.get()
@@ -718,41 +693,15 @@ def new_note():
         date = date_entry.get()
         tags = tags_entry.get()
 
-        # title need to be unique check it first
-        cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
-        note = cursor.fetchone()
-        if note:
-            print("Note already exists")
-        else:
-            # create a new note
-            cursor.execute("INSERT INTO notes VALUES (?, ?, ?, ?)", (title, text, date, tags))
-            # commit the changes
-            connection.commit()
-            # close the window
-            new_note_window.destroy()
-            # get all notes
+        done = database_manager.new_note(title, text, date, tags)
+        if done:
+            # show success 
+            messagebox.showinfo('Success', 'Note saved successfully')
             get_all_notes()
-            # create a window to show the note
-            note_window = tk.Tk()
-            note_window.title(title)
-            note_window.geometry("500x300")
-            # create a label to show the title
-            title_label = tk.Label(note_window, text=title)
-            title_label.grid(row=0, column=0)
-            # create a label to show the text
-            text_label = tk.Label(note_window, text=text)
-            text_label.grid(row=1, column=0)
-            # create a label to show the date
-            date_label = tk.Label(note_window, text=date)
-            date_label.grid(row=2, column=0)
-            # create a label to show the tags
-            tags_label = tk.Label(note_window, text=tags)
-            tags_label.grid(row=3, column=0)
+        else:
+            # show error message
+            messagebox.showerror("Error", "Note not saved, already exists one with this title")
 
-            # create a button to close the window
-            close_button = tk.Button(note_window, text="Close", command=note_window.destroy)
-            close_button.grid(row=3, column=0)
-    
     def plot(df):
       
         # create a frame to plot a matplotlib graph
@@ -792,15 +741,16 @@ def new_note():
     text_entry.bind("<Command-d>", delete_line) # shortcut for deleting a line
     text_entry.bind('<KeyRelease>', is_command) # check if a command is inserted
     text_entry.bind('<Control-s>', summary_highlighted_text) # shortcut for summarizing highlighted text
-    new_note_window.bind("<Command-p>", plot_graph)
+    new_note_window.bind("<Control-p>", plot_graph)
     create_note_button.config(command=save_note)
 
     # GRID
     title_entry.grid(row=0, column=0, sticky="sw", padx=10, pady=10)
-    date_entry.grid(row=0, column=3, sticky="se", padx=10, pady=10)
-    tags_entry.grid(row=2, column=0, sticky="sw", padx=10, pady=10)
+    date_entry.grid(row=0, column=1, sticky="se", padx=10, pady=10)
+    tags_entry.grid(row=0, column=2, sticky="sw", padx=10, pady=10)
+    create_note_button.grid(row=0, column=3, sticky="sew", padx=10, pady=10)
+
     text_entry.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
-    create_note_button.grid(row=2, column=2, sticky="sew", padx=10, pady=10)
 
 '''Logic'''
 if __name__ == "__main__":

@@ -1,72 +1,73 @@
 # import the sqlite3 module
 import sqlite3
 
-# create a connection to the database
-connection = sqlite3.connect("notes.db")
+class database:
+    def __init__(self, name):
+        self.name = name
+        # create a connection to the database
+        try:
+            self.conn = sqlite3.connect(self.name)
+            self.cursor = self.conn.cursor()
+        except:
+            print("Error connecting to database")
+            print('You might need to create the database first')
 
-# create a cursor
-cursor = connection.cursor()
+    def create_table(self):
+        self.cursor.execute("CREATE TABLE notes (title TEXT, text TEXT, date TEXT, tags TEXT)")
 
-def create_table():
-    # create a table
-    cursor.execute("CREATE TABLE notes (title TEXT, text TEXT, date TEXT, tags TEXT)")
+    def new_note(self,title,text,date,tags):
+        # title need to be unique check it first
+        self.cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
+        note = self.cursor.fetchone()
+        if note:
+            print("Note already exists")
+            return False
+        else:
+            # create a new note
+            self.cursor.execute("INSERT INTO notes VALUES (?, ?, ?, ?)", (title, text, date, tags))
+            # commit the changes
+            self.conn.commit()
+            return True
 
-def new_note(title, text, date, tags):
-    # title need to be unique check it first
-    cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
-    note = cursor.fetchone()
-    if note:
-        print("Note already exists")
-    else:
-        # create a new note
-        cursor.execute("INSERT INTO notes VALUES (?, ?, ?, ?)", (title, text, date, tags))
+    def get_all_notes(self):
+        # try to open the notes table
+        self.cursor.execute("SELECT * FROM notes")
+        notes = self.cursor.fetchall()
+        return notes
+
+    def get_single_note(self, title):
+        # get a single note
+        self.cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
+        note = self.cursor.fetchone()
+        # print the note
+        return note
+
+    def update_single_note(self,title, text, date, tags):
+        # update a single note
+        self.cursor.execute("UPDATE notes SET text=?, date=?, tags=? WHERE title=?", (text, date, tags, title))
         # commit the changes
-        connection.commit()
+        self.conn.commit()
 
-def get_all_notes():
-    # try to open the notes table
-    cursor.execute("SELECT * FROM notes")
-    notes = cursor.fetchall()
-    # print the notes
-    for note in notes:
-        print(note)
+    def delete_single_note(self, title):
+        # delete a single note
+        self.cursor.execute("DELETE FROM notes WHERE title=?", (title,))
+        # commit the changes
+        self.conn.commit()
 
-def get_single_note(title):
-    # get a single note
-    cursor.execute("SELECT * FROM notes WHERE title=?", (title,))
-    note = cursor.fetchone()
-    # print the note
-    print(note)
+    def reset_table(self):
+        # drop the table
+        self.cursor.execute(f"DROP TABLE {self.name}")
+        # commit the changes
+        self.connection.commit()
 
-def update_single_note(title, text, date, tags):
-    # update a single note
-    cursor.execute("UPDATE notes SET text=?, date=?, tags=? WHERE title=?", (text, date, tags, title))
-    # commit the changes
-    connection.commit()
-
-def delete_single_note(title):
-    # delete a single note
-    cursor.execute("DELETE FROM notes WHERE title=?", (title,))
-    # commit the changes
-    connection.commit()
-
-# get all notes from date to date
-def get_notes_from_date_to_date(date1, date2):
-    # get all notes from date to date
-    cursor.execute("SELECT * FROM notes WHERE date BETWEEN ? AND ?", (date1, date2))
-    notes = cursor.fetchall()
-    # print the notes
-    for note in notes:
-        print(note)
-
-def reset_table():
-    # drop the table
-    cursor.execute("DROP TABLE notes")
-    # commit the changes
-    connection.commit()
-
+    def close_connection(self):
+        # close the connection
+        self.connection.close()
+        
 # for networkx graphs
 def get_tag_and_words(tags):
+    conn = sqlite3.connect('notes.db')
+    cursor = conn.cursor()
     # create a table with two colums
     import pandas as pd
     df = pd.DataFrame(columns=['tag', 'words'])
@@ -88,5 +89,7 @@ def get_tag_and_words(tags):
     print(df)
     return df
 
-reset_table()
+# to restart the database run this function
+'''reset_table()
 create_table()
+'''
