@@ -88,3 +88,5 @@ def get_tag_and_words(tags):
     print(df)
     return df
 
+reset_table()
+create_table()
