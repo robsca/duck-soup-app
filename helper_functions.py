@@ -77,6 +77,23 @@ def get_wiki_text(url, chapter=None):
         # join the text
         text = ' '.join(text)
         return text, chapters
+
+def get_text_from_url(url):
+    # import the libraries
+    import requests
+    from bs4 import BeautifulSoup
+    # get the webpage
+    page = requests.get(url)
+    # create a BeautifulSoup object
+    soup = BeautifulSoup(page.content, 'html.parser')
+    # find everything that contains the text
+    text = soup.find_all('p')
+    # clean the text
+    text = [t.get_text() for t in text]
+    # join the text
+    text = ' '.join(text)
+    return text
+
 # run
 if __name__ == '__main__':
     import ssl

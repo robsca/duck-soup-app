@@ -1,12 +1,13 @@
 from helper_functions import *
+from manage_database import get_tag_and_words
+
 import tkinter as tk
 import sqlite3
-from manage_database import get_tag_and_words
 from transformers import pipeline
+summarizer = pipeline("summarization")
+
 import datetime as datetime
 from model_tgen import model, tokenizer
-
-
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # to plot in tkinter
@@ -424,15 +425,24 @@ def new_note():
     # create a new window
     new_note_window = tk.Tk()
     new_note_window.title("New note")
+    # set the size of the window
     new_note_window.geometry(f"{int(screen_width*0.71)}x{int(screen_height*0.9)}") # 25% less
     width = new_note_window.winfo_screenwidth()
-    
+    # Create all the entries for a note objects
+    # date entry 
     value=datetime.datetime.now().strftime("%d-%m-%Y")
-    date_entry = tk.Entry(new_note_window, textvariable=value)
+    date_entry = tk.Entry(new_note_window)
+    date_entry.insert(0, value)
+    # title entry
     title_entry = tk.Entry(new_note_window)
-  
+    # text entry
     text_entry = tk.Text(new_note_window, width=width//10, height=50)
-    text_entry.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
+    # set a padding for the text entry
+    text_entry.config(wrap="word", padx=10, pady=10)
+    # tags entry
+    tags_entry = tk.Entry(new_note_window)
+    # create a submit button
+    create_note_button = tk.Button(new_note_window, text="Create note")
     ''''''
 
     # FUNCTIONS NLP
@@ -480,11 +490,8 @@ def new_note():
             # replace the / with a space
             text = text.replace("/", " ")
             prompt = prompt.replace(last_word, text)
-            # delete textarea
-            text_entry.delete(1.0, tk.END)
             # insert generated text
             text_entry.insert(tk.END, prompt)
-
         else:
             chapter_ = None
             url = f"https://en.wikipedia.org/wiki/{word}"
@@ -497,7 +504,8 @@ def new_note():
             wiki_window = tk.Toplevel(window)
             wiki_window.title("Wikipedia")
             wiki_window.geometry("350x350")
-            # add text to textarea
+            # before adding the text check the text_entry and save the text
+            before_wiki = text_entry.get(1.0, tk.END)
             text_entry.insert(tk.END, text)
             # add chapters to listbox
             listbox = tk.Listbox(wiki_window, height=10, width=40)
@@ -511,10 +519,11 @@ def new_note():
                 chapter = listbox.get(listbox.curselection())
                 # get text from wikipedia
                 text, chapters = get_wiki_text(url, chapter)
+                # add before_wiki to to text_entry
+                text_entry.delete(1.0, tk.END)
+                text_entry.insert(tk.END, before_wiki)
                 # replace the / with a space
                 text = text.replace("/", " ")
-                # delete textarea
-                text_entry.delete(1.0, tk.END)
                 # insert generated text
                 text_entry.insert(tk.END, text)
                 # destroy window
@@ -522,6 +531,17 @@ def new_note():
             # bind event to listbox
             listbox.bind("<<ListboxSelect>>", select_chapter)
 
+    def get_url_text(prompt, last_word):
+        # get the url
+        url = last_word[5:]
+        # make a request to the url
+        print("Getting url text")
+        text = get_text_from_url(url)
+        # replace the / with a space
+        text = text.replace("/", " ")
+        # insert generated text
+        text_entry.insert(tk.END, text)
+    
     def question_answering(prompt):
         def answer_question(prompt):
             model = pipeline("question-answering")
@@ -561,13 +581,14 @@ def new_note():
 
     # EVENTS
     def interpreter(event):
+        # 1. get text from text_entry
         prompt = text_entry.get("1.0", "end-1c")
-        # get last word of prompt
+        # 2. get last word from prompt
         last_word = prompt.split()[-1]
 
-
-        # text generation
+        # ACTIONS FOR LAST WORD
         if last_word == "/gen200":
+            # generate text
             generate_text(200, prompt)
         elif last_word == "/gen50":
             generate_text(50, prompt)
@@ -579,15 +600,16 @@ def new_note():
         # wikipedia scraping
         elif last_word[:6] == "/wiki-":
             get_wiki_summary(prompt, last_word)
+        # url scraping
+        elif last_word[:5] == "/url-":
+            get_url_text(prompt, last_word)
         # question answering
         elif last_word == "/qa":
             question_answering(prompt)
         else:
             print('No generate command found')
-
         return None
 
-    # if text is highlighted, delete it when pressed command + s
     def summary_highlighted_text(event):
         '''
         This function is called when the user presses command + s
@@ -598,7 +620,6 @@ def new_note():
         
         # delete last word from prompt
         print("Generating summary") 
-        summarizer = pipeline("summarization")
 
         summary = summarizer(prompt, max_length=100, min_length=30, truncation=True)
         summary = summary[0]['summary_text']
@@ -607,7 +628,6 @@ def new_note():
         text_entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
         text_entry.insert(tk.INSERT, summary)    
 
-    # every new char excecute a function thtat if is a /
     def is_command(event):
         '''
         This function is called every time a new character is inserted in the text area
@@ -657,26 +677,10 @@ def new_note():
         
         analyze_text()
 
-    # BINDINGS
-    text_entry.bind('<KeyRelease>', is_command)
-
-    text_entry.bind('<Return>', lambda event: text_entry.insert(tk.END, interpreter(text_entry)))
-    text_entry.bind('<Control-s>', summary_highlighted_text)
-        # create shortcuts to delete the current line
     def delete_line(event):
         text_entry.delete("insert linestart", "insert lineend +1c")
-    text_entry.bind("<Command-d>", delete_line)
 
-    tags_entry = tk.Entry(new_note_window)
-    # create a label to show the title
-    # create a button to create a new note
-    create_note_button = tk.Button(new_note_window, text="Create note")
-    title_entry.grid(row=0, column=0, sticky="sw")
-    date_entry.grid(row=0, column=3, sticky="se")
-    tags_entry.grid(row=2, column=0, sticky="sw")
-    # create note has to be sticky in the middle
-
-    # save the note
+    # DATABASE FUNCTIONS
     def save_note_and_plot(destroy=True):
         # get the title, text and date
         title = title_entry.get()
@@ -695,7 +699,6 @@ def new_note():
             # commit the changes
             connection.commit()
 
-    # save the note
     def save_note(destroy=True):
         # get the title, text and date
         title = title_entry.get()
@@ -737,13 +740,7 @@ def new_note():
             # create a button to close the window
             close_button = tk.Button(note_window, text="Close", command=note_window.destroy)
             close_button.grid(row=3, column=0)
-
-    # create a button to save the note
-    # bind the save_note function to the create_note_button
-    create_note_button.config(command=save_note)
-    create_note_button.grid(row=2, column=2, sticky="sew")
-    # if command + p is pressed plot the graph
-
+    
     def plot(df):
       
         # create a frame to plot a matplotlib graph
@@ -768,6 +765,7 @@ def new_note():
         canvas.draw()
         # pack the canvas
         canvas.get_tk_widget().pack()
+    
     def plot_graph(event):
           # graph
         cursor.execute("SELECT tags FROM notes")
@@ -777,9 +775,22 @@ def new_note():
         df = get_tag_and_words(tags)
         plot(df)
 
-    # bind the plot_graph function to the command + p key
+    # BINDINGS Functions
+    text_entry.bind('<Return>', lambda event: text_entry.insert(tk.END, interpreter(text_entry)))
+    text_entry.bind("<Command-d>", delete_line) # shortcut for deleting a line
+    text_entry.bind('<KeyRelease>', is_command) # check if a command is inserted
+    text_entry.bind('<Control-s>', summary_highlighted_text) # shortcut for summarizing highlighted text
     new_note_window.bind("<Command-p>", plot_graph)
+    create_note_button.config(command=save_note)
 
+    # GRID
+    title_entry.grid(row=0, column=0, sticky="sw")
+    date_entry.grid(row=0, column=3, sticky="se")
+    tags_entry.grid(row=2, column=0, sticky="sw")
+    text_entry.grid(row=1, column=0, columnspan=4, padx=10, pady=10)
+    create_note_button.grid(row=2, column=2, sticky="sew")
+
+''''''
 # Logic
 if __name__ == "__main__":
     # Get all notes for the main page
