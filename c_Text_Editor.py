@@ -1,5 +1,5 @@
 from a_NLP_Processor import NLP
-from c_Silver_Scraper import Silver_Scraper
+from b_Silver_Scraper import Silver_Scraper
 
 import tkinter as tk
 from nltk.corpus import stopwords

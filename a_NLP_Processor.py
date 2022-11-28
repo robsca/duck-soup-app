@@ -1,6 +1,5 @@
 import datetime
 from transformers import pipeline
-
 class NLP:
     '''
     This class should be indipendent from the GUI

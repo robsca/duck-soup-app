@@ -1,6 +1,6 @@
 import tkinter as tk
-from b_Text_Editor import TextEditor
-from e_Database_Manager import database
+from c_Text_Editor import TextEditor
+from d_Database_Manager import database
 
 class NoteApp:
     def __init__(self, root):
