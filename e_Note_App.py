@@ -27,6 +27,20 @@ class NoteApp:
         delete_button = tk.Button(self.root, text="Hide", command=lambda: delete_listbox())
         delete_button.grid(row=1, column=8, sticky="nsew", padx=5, pady=5)
 
+        # when mouse hover over a note, show the text
+        def open_note(event):
+            # get the index of the note
+            index = self.listbox_notes.curselection()[0]
+            # get the text of the note
+            text = notes[index]
+            print(text)
+
+            # add text to the text editor
+            self.text_editor.text_entry.delete(1.0, tk.END)
+            self.text_editor.text_entry.insert(tk.END, text[1])
+
+        self.listbox_notes.bind('<<ListboxSelect>>', open_note)
+
     def save_note(self):
         # get the title from the text editor
         title = self.text_editor.title_entry.get()
@@ -55,6 +69,3 @@ if __name__ == "__main__":
     note_app = NoteApp(root)
     note_app.write()
     note_app.run()
-
-        
-
