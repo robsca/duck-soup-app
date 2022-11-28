@@ -21,9 +21,6 @@ class Silver_Scraper:
                 if t.name == 'h2': # if the tag is h2
                     if t.get_text() == chapter: # if the text is the chapter
                         print("Found chapter")
-                        text.append(t.get_text()) # append the text
-                        next_p = t.find_next('p') # find the next p
-                        text.append(next_p.get_text()) # append the text
                         next_h2 = t.find_next('h2') # find the next h2
                         # all the text until the next_2
                         for t in t.find_next_siblings(): # iterate over the siblings

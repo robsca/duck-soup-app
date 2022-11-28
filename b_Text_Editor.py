@@ -3,7 +3,6 @@ from c_Silver_Scraper import Silver_Scraper
 
 import tkinter as tk
 from nltk.corpus import stopwords
-import re
 
 class TextEditor:
     def __init__(self, root):
