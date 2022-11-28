@@ -1,4 +1,3 @@
-from tracemalloc import start
 from a_NLP_Processor import NLP
 from c_Silver_Scraper import Silver_Scraper
 
@@ -70,7 +69,7 @@ class TextEditor:
             # bind the get_answer function to the enter key
             question_entry.bind("<Return>", get_answer)
 
-        # 4. wikipedia scraping
+        # 4. WIKIPEDIA scraping
         elif self.last_word[:6] == "/wiki-": # works
             # get the url
             wiki_word = self.last_word[6:]
@@ -82,7 +81,7 @@ class TextEditor:
             self.text_entry.insert(tk.END, text)
             # add chapters to listbox inside textarea
 
-            listbox = tk.Listbox(self.root, height=10, width=5)
+            listbox = tk.Listbox(self.root, height=10, width=20)
             listbox.grid(row=0, column=5, sticky="nsew", padx=5, pady=5)
             for chapter in chapters:
                 listbox.insert(tk.END, chapter)
@@ -112,7 +111,8 @@ class TextEditor:
             
             # bind event to listbox if double clicked
             listbox.bind("<<ListboxSelect>>", select_chapter)
-
+        
+        # 5. URL scraping
         elif self.last_word[:5] == "/url-":
             # get the url
             url = self.last_word[5:]
@@ -167,7 +167,7 @@ class TextEditor:
         '''
         print("Generating summary") 
         self.prompt = self.text_entry.selection_get()         # get selected text
-        summary = self.NLP_Processor.create_summary(self.prompt)        # create summary
+        summary = self.NLP_Processor.summarize(self.prompt)        # create summary
         # put instead of selected text
         self.text_entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
         self.text_entry.insert(tk.INSERT, summary)    
@@ -198,13 +198,8 @@ class TextEditor:
             self.text_entry.tag_delete("bold")
             self.text_entry.tag_delete("big")
 
-        text = self.text_entry.get(index1="1.0", index2="end")
-        words = text.split()
-        word_count = len(words)
-        word_count_label = tk.Label(self.root, text=f"Word count: {word_count}")
-        word_count_label.grid(row=2, column=0)
+        text = self.get_text()
 
-       
         # analyze the text
         def analyze_text():
             no_words = stopwords.words("english")
@@ -222,7 +217,7 @@ class TextEditor:
             most_common_words = word_count.most_common(5) # get the 5 most common words
             # create a  list box to show the most common words
             listbox = tk.Listbox(self.root, height=5, width=20)
-            listbox.grid(row=0, column=5, sticky="nsew", padx=5, pady=5)
+            listbox.grid(row=0, column=6, sticky="nsew", padx=5, pady=5)
             for word in most_common_words:
                 listbox.insert(tk.END, word)
 
@@ -247,6 +242,17 @@ class TextEditor:
 
             # bind event to listbox if double clicked
             listbox.bind("<<ListboxSelect>>", select_word)
+
+            # button to hide the listbox
+            def delete_listbox(event):
+                # delete all listbox
+                listbox.destroy()
+                # delete button
+                delete_button.destroy()
+
+            delete_button = tk.Button(self.root, text="Hide", command=lambda: delete_listbox(event))
+            delete_button.grid(row=1, column=6, sticky="nsew", padx=5, pady=5)
+
 
         analyze_text()
      
