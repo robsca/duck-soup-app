@@ -8,3 +8,5 @@ scipy
 torch
 transformers
 nltk
+requests
+bs4
