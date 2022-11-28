@@ -270,3 +270,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     text_ = TextEditor(root)
     root.mainloop()
+
