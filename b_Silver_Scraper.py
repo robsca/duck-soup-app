@@ -34,12 +34,15 @@ class Silver_Scraper:
 
             # join the text
             text = ' '.join(text)
+            text = text.replace("/", "-")
             return text, chapters
         else:
             # find the text from p and h2
             text = [t.get_text() for t in soup.find_all(['p', 'h2'])]
             # join the text
             text = ' '.join(text)
+            # replace the / with a space
+            text = text.replace("/", "-")
             return text, chapters
 
     def scraping_wiki(self, last_word):

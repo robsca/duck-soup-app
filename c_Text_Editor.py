@@ -1,3 +1,4 @@
+from cgitb import text
 from re import S
 from click import command
 from a_NLP_Processor import NLP
@@ -161,17 +162,27 @@ class TextEditor:
             print('No generate command found')
         return None
 
-    def summary_highlighted_text(self, event):
+    def summary_highlighted_text(self, event, text_area = None):
         '''
         This function is called when the user presses command + s
         It creates a summary of the highlighted text and replaces it with the summary
         '''
-        print("Generating summary") 
-        self.prompt = self.text_entry.selection_get()         # get selected text
-        summary = self.NLP_Processor.summarize(self.prompt)        # create summary
-        # put instead of selected text
-        self.text_entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
-        self.text_entry.insert(tk.INSERT, summary)    
+        if not text_area:
+            print("Generating summary") 
+            self.prompt = self.text_entry.selection_get()         # get selected text
+            summary = self.NLP_Processor.summarize(self.prompt)        # create summary
+            # put instead of selected text
+            self.text_entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_entry.insert(tk.INSERT, summary)   
+        else:
+            print("Generating summary") 
+            prompt = text_area.selection_get()
+            summary = self.NLP_Processor.summarize(prompt)
+            print(summary)
+            text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            text_area.insert(tk.INSERT, summary)
+            print("Summary generated")
+        return None 
 
     def wiki_highlighted_text(self, event):
         '''
@@ -186,15 +197,18 @@ class TextEditor:
         text, chapters = Scraper.get_wiki_text()
         # open a new window
         new_window = tk.Toplevel(self.root)
+
         new_window.title(f"{self.prompt} - Wikipedia")
+        # geometry
+        new_window.geometry("800x600")
         # add text to textarea
-        text_entry = tk.Text(new_window, height=20, width=50)
-        text_entry.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        text_entry = tk.Text(new_window, height=50, width=150)
+        text_entry.grid(row=0, column=0, columnspan=5, sticky="nsew", padx=5, pady=5)
         text_entry.insert(tk.END, text)
         # add chapters to listbox inside textarea
 
         listbox = tk.Listbox(new_window, height=10, width=20)
-        listbox.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        listbox.grid(row=0, column=6, sticky="nsew", padx=5, pady=5)
         for chapter in chapters:
             listbox.insert(tk.END, chapter)
 
@@ -233,6 +247,10 @@ class TextEditor:
         # bind event to listbox if double clicked
         listbox.bind("<<ListboxSelect>>", select_chapter)
 
+        # bind command + s to summary_highlighted_text
+        new_window.bind("<Command-s>", self.summary_highlighted_text(event, text_area=text_entry))
+        # bind command + w to wiki_highlighted_text
+        new_window.bind("<Control-w>", self.wiki_highlighted_text(event))
 
     def is_command(self, event): # works
         '''
@@ -330,6 +348,7 @@ class TextEditor:
         self.text_entry.bind("<Command-s>", self.summary_highlighted_text)
         # bind the wiki_search function to control + w 
         self.text_entry.bind("<Control-w>", self.wiki_highlighted_text)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
