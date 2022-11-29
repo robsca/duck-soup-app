@@ -1,3 +1,5 @@
+from re import S
+from click import command
 from a_NLP_Processor import NLP
 from b_Silver_Scraper import Silver_Scraper
 
@@ -171,6 +173,67 @@ class TextEditor:
         self.text_entry.delete(tk.SEL_FIRST, tk.SEL_LAST)
         self.text_entry.insert(tk.INSERT, summary)    
 
+    def wiki_highlighted_text(self, event):
+        '''
+        This function is called when the user presses command + s
+        It creates a summary of the highlighted text and replaces it with the summary
+        '''
+        print("Looking up on Wikipedia")
+        self.prompt = self.text_entry.selection_get()         # get selected text
+        url = 'https://en.wikipedia.org/wiki/' + self.prompt
+        # get the text and the chapters from url
+        Scraper = Silver_Scraper(url) # create a scraper object
+        text, chapters = Scraper.get_wiki_text()
+        # open a new window
+        new_window = tk.Toplevel(self.root)
+        new_window.title(f"{self.prompt} - Wikipedia")
+        # add text to textarea
+        text_entry = tk.Text(new_window, height=20, width=50)
+        text_entry.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        text_entry.insert(tk.END, text)
+        # add chapters to listbox inside textarea
+
+        listbox = tk.Listbox(new_window, height=10, width=20)
+        listbox.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        for chapter in chapters:
+            listbox.insert(tk.END, chapter)
+
+        color = self.text_entry.cget("background")
+        listbox.config(background=color)
+        # create button to delete listbox
+        def delete_listbox(event):
+            listbox.destroy()
+            delete_button.destroy()
+        delete_button = tk.Button(self.root, text="Hide", command=lambda: delete_listbox(event))
+        delete_button.grid(row=1, column=5, sticky="nsew", padx=5, pady=5)
+        
+        # if chapter is selected
+        def select_chapter(event):
+            # get selected chapter
+            chapter = listbox.get(listbox.curselection())
+            # get text from wikipedia
+            text, chapters = Scraper.get_wiki_text(chapter)
+            # replace the / with a space
+            text = text.replace("/", " ")
+            # delete textarea
+            text_entry.delete(1.0, tk.END)
+            # insert generated text
+            text_entry.insert(tk.END, text)
+            # destroy window
+        # add button to append note to the end of the text
+        def add_note():
+            # get note fro main window
+            note = text_entry.get(1.0, tk.END)
+            # add note to the end of the text
+            self.text_entry.insert(tk.END, note)
+        # create button
+        add_note_button = tk.Button(new_window, text="Add note", command=add_note)
+        add_note_button.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # bind event to listbox if double clicked
+        listbox.bind("<<ListboxSelect>>", select_chapter)
+
+
     def is_command(self, event): # works
         '''
         This function is called every time a new character is inserted in the text area
@@ -265,9 +328,10 @@ class TextEditor:
         self.text_entry.bind("<Return>", self.interpreter)
         # bind the summary_highlighted_text function to command + s
         self.text_entry.bind("<Command-s>", self.summary_highlighted_text)
+        # bind the wiki_search function to control + w 
+        self.text_entry.bind("<Control-w>", self.wiki_highlighted_text)
 
 if __name__ == "__main__":
     root = tk.Tk()
     text_ = TextEditor(root)
     root.mainloop()
-

@@ -7,6 +7,7 @@ class NoteApp:
         self.root = root
         # initialize database
         self.database = database('notes.db')
+        self.title_entry = tk.Entry(self.root)
 
     def list_of_notes(self):
         # get all notes
@@ -31,6 +32,9 @@ class NoteApp:
         def open_note(event):
             # get the index of the note
             index = self.listbox_notes.curselection()[0]
+            # get the title of the note
+            print(note)
+
             # get the text of the note
             text = notes[index]
             print(text)
@@ -44,7 +48,7 @@ class NoteApp:
     def save_note(self):
         # get the title from the text editor
         title = self.text_editor.title_entry.get()
-        # get the text from the text editor
+        # get note from the text editor
         text = self.text_editor.get_text()
         # save the note
         self.database.new_note(title, text, 'date', 'tags')

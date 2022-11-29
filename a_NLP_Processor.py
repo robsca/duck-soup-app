@@ -45,4 +45,3 @@ class NLP:
     def answer_question(self, prompt, question):
         answer = self.qa(question=question, context=prompt)
         return answer['answer']
-    
