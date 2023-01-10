@@ -5,6 +5,9 @@ class NLP:
     This class should be indipendent from the GUI
     '''
     def __init__(self): # works
+        '''
+        Initialize the NLP class
+        '''
         print(f"Initalizing NLP_Processor class")
         start = datetime.datetime.now()
         # print("NLP class: Creating instance")
@@ -23,6 +26,15 @@ class NLP:
         print(f"Initialization NLP_Processor completed: {time} seconds")
 
     def summarize(self, prompt, max_length=100, min_length=30, delete_prompt=True): # works
+        '''
+        param: 
+            prompt: string
+            max_length: int
+            min_length: int
+            delete_prompt: bool
+        return:
+            summary: string
+        '''
         print("Generating summary") 
         # delete last word from prompt
         last_word = prompt.split()[-1]
@@ -32,6 +44,13 @@ class NLP:
         return summary
     
     def generate_text(self, prompt, num = 100): # works
+        '''
+        param:
+            prompt: string
+            num: int (number of words to generate)
+        return:
+            generated: string (generated text)
+        '''
         print(f"Generating {num} words")
         len_prompt = len(prompt.split())
         last_word = prompt.split()[-1]
@@ -43,5 +62,13 @@ class NLP:
         return generated
 
     def answer_question(self, prompt, question):
+        '''
+        param:
+            prompt: string
+            question: string
+        return:
+            answer: string
+        '''
+        print("Answering question")
         answer = self.qa(question=question, context=prompt)
         return answer['answer']

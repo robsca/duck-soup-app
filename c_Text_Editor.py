@@ -1,10 +1,10 @@
-from cgitb import text
-from re import S
-from click import command
+
 from a_NLP_Processor import NLP
 from b_Silver_Scraper import Silver_Scraper
 
 import tkinter as tk
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 class TextEditor:

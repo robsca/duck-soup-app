@@ -1,7 +1,5 @@
-pandas
-streamlit 
+pandas 
 numpy
-pyttsx3
 networkx
 matplotlib
 scipy

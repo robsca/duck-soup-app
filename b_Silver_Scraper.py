@@ -4,8 +4,15 @@ from bs4 import BeautifulSoup
 class Silver_Scraper:
     def __init__(self, url):
         self.url = url
+
     # 1. WIKI
     def get_wiki_text(self, chapter=None):
+        '''
+        param:
+            chapter: string (chapter to get)
+        return:
+            text: string  (text of the chapter)
+        '''
         page = requests.get(self.url) # get the page
         soup = BeautifulSoup(page.content, 'html.parser') # create a BeautifulSoup object
         chapters = soup.find_all('h2') # find all the chapters
@@ -46,6 +53,12 @@ class Silver_Scraper:
             return text, chapters
 
     def scraping_wiki(self, last_word):
+        '''
+        param:
+            last_word: string
+        return:
+            wiki_text: string
+        '''
         print("Getting wikipedia summary")
         word = last_word[6:] # get the word to search
         if "+" in word:
